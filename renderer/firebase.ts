@@ -1,6 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
-import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import {
+  browserLocalPersistence,
+  browserSessionPersistence,
+  createUserWithEmailAndPassword,
+  getAuth,
+  setPersistence,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from 'firebase/auth';
+import { getStorage, ref, uploadBytes, uploadString } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCLEOMgt_rLCOBkpeyCyqofaItZ5QsxiLc',
@@ -13,12 +22,17 @@ const firebaseConfig = {
   databaseURL: 'https://nextron-chat-app-1068b-default-rtdb.firebaseio.com/',
 };
 
+interface User {
+  [key: string]: string;
+}
+
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth();
-export const database = getDatabase();
+const database = getDatabase();
+const storage = getStorage(app);
 
 export const signUp = async (email: string, password: string) => {
   createUserWithEmailAndPassword(auth, email, password)
@@ -34,7 +48,7 @@ export const signUp = async (email: string, password: string) => {
 };
 
 export const signIn = async (email: string, password: string) => {
-  signInWithEmailAndPassword(auth, email, password)
+  return signInWithEmailAndPassword(auth, email, password)
     .then((userCredential) => {
       const user = userCredential.user;
       return user;
@@ -43,5 +57,24 @@ export const signIn = async (email: string, password: string) => {
       const errorCode = error.code;
       const errorMessage = error.message;
       console.log(errorMessage);
+      return errorMessage;
     });
+};
+
+export const updateUser = async (displayName: string, photoURL: string) => {
+  if (auth.currentUser !== null) {
+    updateProfile(auth.currentUser, {
+      displayName,
+      photoURL,
+    })
+      .then(() => {
+        console.log('User updated successfully');
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(`error code: ${errorCode}`);
+        console.log(`error message: ${errorMessage}`);
+      });
+  }
 };
