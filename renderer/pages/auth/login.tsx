@@ -3,6 +3,11 @@ import Link from 'next/link';
 
 import { useForm } from 'react-hook-form';
 import { signIn } from '../../firebase';
+import { useRecoilState } from 'recoil';
+import { authState } from '../../recoil/authAtom';
+import Store from 'electron-store';
+
+const store = new Store();
 
 interface userType {
   email: string;
@@ -11,11 +16,16 @@ interface userType {
 
 function Login() {
   const { register, handleSubmit } = useForm<userType>();
-
+  const [token, setToken] = useRecoilState(authState);
   const onSubmit = async (data: userType) => {
     const user = await signIn(data.email, data.password);
-    console.log(user);
+    if (user.accessToken) {
+      store.set('accessToken', user.accessToken);
+      const accessToken: any = store.get('accessToken');
+      setToken(accessToken);
+    }
   };
+
   return (
     <div>
       <p>
