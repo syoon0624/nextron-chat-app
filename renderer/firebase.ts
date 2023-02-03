@@ -1,15 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getDatabase } from 'firebase/database';
-import {
-  browserLocalPersistence,
-  browserSessionPersistence,
-  createUserWithEmailAndPassword,
-  getAuth,
-  setPersistence,
-  signInWithEmailAndPassword,
-  updateProfile,
-} from 'firebase/auth';
-import { getStorage, ref, uploadBytes, uploadString } from 'firebase/storage';
+import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: 'AIzaSyCLEOMgt_rLCOBkpeyCyqofaItZ5QsxiLc',
@@ -35,7 +27,7 @@ const database = getDatabase();
 const storage = getStorage(app);
 
 export const signUp = async (email: string, password: string) => {
-  createUserWithEmailAndPassword(auth, email, password)
+  return createUserWithEmailAndPassword(auth, email, password)
     .then((userCredentail) => {
       const user = userCredentail.user;
       return user;
@@ -44,6 +36,7 @@ export const signUp = async (email: string, password: string) => {
       const errorCode = error.code;
       const errorMessage = error.message;
       console.log(errorMessage);
+      return errorMessage;
     });
 };
 
@@ -62,8 +55,12 @@ export const signIn = async (email: string, password: string) => {
 };
 
 export const updateUser = async (displayName: string, photoURL: string) => {
+  console.log(auth.currentUser);
   if (auth.currentUser !== null) {
-    updateProfile(auth.currentUser, {
+    console.log('hello!');
+    console.log(displayName);
+    console.log(photoURL);
+    return updateProfile(auth.currentUser, {
       displayName,
       photoURL,
     })
@@ -75,6 +72,7 @@ export const updateUser = async (displayName: string, photoURL: string) => {
         const errorMessage = error.message;
         console.log(`error code: ${errorCode}`);
         console.log(`error message: ${errorMessage}`);
+        return errorMessage;
       });
   }
 };

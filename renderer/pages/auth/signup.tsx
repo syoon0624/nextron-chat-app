@@ -13,12 +13,13 @@ interface userType {
 export default function SignUp() {
   const { register, handleSubmit } = useForm<userType>();
   const [photoURL, setPhotoURL] = useState<string>('https://i.stack.imgur.com/l60Hf.png');
-  console.log(auth.currentUser);
   const onSubmit = async (data: userType) => {
     const user = await signUp(data.email, data.password);
-    if (user === undefined) {
+    if (user.email) {
       await signIn(data.email, data.password);
       await updateUser(data.displayName, photoURL);
+    } else {
+      alert('회원가입 실패!');
     }
   };
   return (
