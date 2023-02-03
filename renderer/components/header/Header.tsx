@@ -16,6 +16,7 @@ export default function Header() {
     setToken('');
     setUser({
       isAuthenticated: false,
+      uid: '',
       email: '',
       displayName: '',
       photoURL: '',
@@ -28,6 +29,7 @@ export default function Header() {
       const data = formatJWTtoJSON(store.get('accessToken'));
       setUser({
         isAuthenticated: true,
+        uid: data.user_id,
         email: data.email,
         displayName: data.name,
         photoURL: data.picture,
@@ -39,6 +41,7 @@ export default function Header() {
         setToken(store.get('accessToken'));
         setUser({
           isAuthenticated: true,
+          uid: data.user_id,
           email: data.email,
           displayName: data.name,
           photoURL: data.picture,
@@ -48,21 +51,28 @@ export default function Header() {
   }, [token]);
   return (
     <header>
-      {user.isAuthenticated ? (
-        <>
-          <p>Hello, {user.displayName}!!</p>
-          <img src={user.photoURL} alt="profile-img" />
-          <button onClick={logoutHandler}>로그 아웃</button>
-        </>
-      ) : (
-        <Link href="/auth/login">로그인</Link>
-      )}
+      <div className="header-wrap">
+        <NavBar />
+        {user.isAuthenticated ? (
+          <>
+            <p>Hello, {user.displayName}!!</p>
+            <img src={user.photoURL} alt="profile-img" />
+            <button onClick={logoutHandler}>로그 아웃</button>
+          </>
+        ) : (
+          <Link href="/auth/login">로그인</Link>
+        )}
+      </div>
       <style jsx>{`
+        .header-wrap {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
         img {
           width: 50px;
         }
       `}</style>
-      <NavBar />
     </header>
   );
 }

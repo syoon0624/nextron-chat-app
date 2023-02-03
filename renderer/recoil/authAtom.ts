@@ -10,6 +10,7 @@ export const userState = atom({
   key: 'userState',
   default: {
     isAuthenticated: false,
+    uid: '',
     email: '',
     displayName: '',
     photoURL: '',

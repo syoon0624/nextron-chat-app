@@ -15,7 +15,7 @@ interface userType {
   password: string;
 }
 
-function Login() {
+export default function Login() {
   const router = useRouter();
   const { register, handleSubmit, setValue } = useForm<userType>();
   const [token, setToken] = useRecoilState(authState);
@@ -49,4 +49,3 @@ function Login() {
     </div>
   );
 }
-export default Login;
