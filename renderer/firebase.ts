@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, get, child } from 'firebase/database';
+import { getDatabase, ref, set, get, child, onValue } from 'firebase/database';
 import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
@@ -19,7 +19,7 @@ export const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-const database = getDatabase(app);
+export const database = getDatabase(app);
 const storage = getStorage(app);
 
 export const signUp = async (email: string, password: string) => {
@@ -152,6 +152,59 @@ export const writeUserChatRooms = async (
 export const getUserChatRooms = async () => {
   const dbRef = ref(database);
   return get(child(dbRef, `userChatRooms/`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        console.log('No data available');
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
+
+export const writeMessages = async (
+  roomId: string | string[],
+  message: string,
+  profileImg: string,
+  timestamp: number,
+  uid: string,
+  username: string
+) => {
+  try {
+    await set(ref(database, `messages/${roomId}/${timestamp}`), {
+      roomId,
+      message,
+      profileImg,
+      timestamp,
+      uid,
+      username,
+    });
+    console.log('채팅 보내기 성공!');
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getMessages = async (roomId: string) => {
+  const dbRef = ref(database);
+  return get(child(dbRef, `messages/${roomId}`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        console.log('No data available');
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
+
+export const getDB = async (path: string) => {
+  const dbRef = ref(database);
+  return get(child(dbRef, path))
     .then((snapshot) => {
       if (snapshot.exists()) {
         return snapshot.val();
