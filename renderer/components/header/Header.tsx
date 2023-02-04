@@ -5,13 +5,14 @@ import Store from 'electron-store';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import NavBar from '../NavBar';
+import { useRouter } from 'next/router';
 
 const store = new Store<string | any>();
 
 export default function Header() {
   const [token, setToken] = useRecoilState<string>(authState);
   const [user, setUser] = useRecoilState(userState);
-
+  const router = useRouter();
   const logoutHandler = () => {
     setToken('');
     setUser({
@@ -23,6 +24,7 @@ export default function Header() {
     });
     store.delete('accessToken');
     alert('로그아웃 성공!');
+    router.push('/home');
   };
   useEffect(() => {
     if (token.length > 0) {
