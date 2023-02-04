@@ -4,7 +4,7 @@ import { formatJWTtoJSON } from '../../utils/formatJWT';
 import Store from 'electron-store';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import NavBar from '../NavBar';
+import NavBar from './NavBar';
 import { useRouter } from 'next/router';
 
 const store = new Store<string | any>();

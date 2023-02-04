@@ -5,6 +5,7 @@ import Seo from '../components/Seo';
 import { getUsers } from '../firebase';
 import { userState } from '../recoil/authAtom';
 import Store from 'electron-store';
+import User from '../components/user/User';
 
 const store = new Store();
 
@@ -43,27 +44,13 @@ export default function UserList() {
       <Seo title="User List" />
       <div className="wrapper">
         <ul>
-          <li className="user-profile">
-            <span>
-              <img src={user.photoURL} alt="profile-img" />
-              <p>{user.displayName}</p>
-            </span>
-            <p>{user.email}</p>
-          </li>
+          <User user={user} className="user-profile" />
           <p>이용자 목록: {users.length - 1}</p>
           {users.length > 0
             ? users
                 .filter((ele) => ele.uid !== user.uid)
                 .map((user) => {
-                  return (
-                    <li key={user.uid}>
-                      <span>
-                        <img src={user.photoURL} alt="profile-img" />
-                        <p>{user.displayName}</p>
-                      </span>
-                      <p>{user.email}</p>
-                    </li>
-                  );
+                  return <User key={user.uid} user={user} className="" />;
                 })
             : ''}
         </ul>
@@ -72,24 +59,6 @@ export default function UserList() {
         {`
           .wrapper {
             margin-top: 20px;
-          }
-          .user-profile {
-            border-bottom: 1px solid black;
-            margin-bottom: 20px;
-          }
-          span {
-            display: flex;
-            align-items: center;
-          }
-          li {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 10px;
-          }
-          img {
-            width: 50px;
-            padding: 0px 10px;
           }
         `}
       </style>

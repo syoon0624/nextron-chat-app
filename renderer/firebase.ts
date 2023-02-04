@@ -88,7 +88,72 @@ export const getUsers = async () => {
   return get(child(dbRef, `users/`))
     .then((snapshot) => {
       if (snapshot.exists()) {
-        console.log(snapshot.val());
+        return snapshot.val();
+      } else {
+        console.log('No data available');
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
+
+// roomId: 생성한 userId + 시간
+export const writeChatRoom = async (roomId: string, userIds: {}) => {
+  try {
+    await set(ref(database, 'roomUsers/' + roomId), userIds);
+    console.log('성공!');
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getChatRoom = async () => {
+  const dbRef = ref(database);
+  return get(child(dbRef, `roomUsers/`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
+        return snapshot.val();
+      } else {
+        console.log('No data available');
+      }
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
+
+export const writeUserChatRooms = async (
+  userId: string,
+  lastMessage: string,
+  profileImg: string,
+  roomId: string,
+  roomType: string,
+  roomUsersName: string,
+  roomUserList: string,
+  timestamp: number
+) => {
+  try {
+    await set(ref(database, `userChatRooms/${userId}/${roomId}`), {
+      lastMessage,
+      profileImg,
+      roomId,
+      roomType,
+      roomUsersName,
+      roomUserList,
+      timestamp,
+    });
+    console.log('방생성 성공!');
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const getUserChatRooms = async () => {
+  const dbRef = ref(database);
+  return get(child(dbRef, `userChatRooms/`))
+    .then((snapshot) => {
+      if (snapshot.exists()) {
         return snapshot.val();
       } else {
         console.log('No data available');
