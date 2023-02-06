@@ -4,8 +4,8 @@ import { useRecoilState } from 'recoil';
 import Seo from '../../components/common/Seo';
 import { userState } from '../../recoil/authAtom';
 import Store from 'electron-store';
-import { database, getMessages, getUserChatRooms } from '../../firebase';
-import { get, limitToFirst, query, ref } from 'firebase/database';
+import { getMessages, getUserChatRooms } from '../../firebase';
+import { formatDate } from '../../utils/formatDate';
 
 const store = new Store();
 
@@ -20,27 +20,41 @@ interface RoomType {
   timestamp: number;
 }
 
+interface MessageType {
+  lastMessage: string;
+  time: string;
+}
+
 export default function ChatIndex() {
   const [user, setUser] = useRecoilState(userState);
   const [roomList, setRoomList] = useState<RoomType[]>([]);
+  const [messageInfo, setMessageInfo] = useState<MessageType[]>([]);
   const router = useRouter();
   useEffect(() => {
     const getRoomList = async () => {
       const newRoomList = [];
       const getRooms = await getUserChatRooms();
+      const newMessageInfo = [];
 
       if (getRooms) {
         for (let i of Object.keys(getRooms)) {
           if (i === user.uid) {
             for (let j of Object.keys(getRooms[i])) {
               newRoomList.push(getRooms[i][j]);
-              const lastMessage = getMessages(getRooms[i][j].roomId, 1);
-              console.log(lastMessage);
+              const lastMessage = await getMessages(getRooms[i][j].roomId, 1);
+              if (lastMessage) {
+                const lastMessageInfo = lastMessage[Object.keys(lastMessage)[0]];
+                newMessageInfo.push({
+                  lastMessage: lastMessageInfo.message,
+                  time: formatDate(lastMessageInfo.timestamp),
+                });
+              }
             }
             break;
           }
         }
         setRoomList(newRoomList);
+        setMessageInfo(newMessageInfo);
       }
     };
     getRoomList();
@@ -60,7 +74,7 @@ export default function ChatIndex() {
         <ul>
           {roomList.length > 0 ? (
             <>
-              {roomList.map((room) => {
+              {roomList.map((room, index) => {
                 return (
                   <li
                     key={room.roomId}
@@ -77,10 +91,10 @@ export default function ChatIndex() {
                             if (index > 0) return ele;
                           })}
                         </p>
-                        <p>{room.lastMessage === '' ? '대화 없음' : room.lastMessage}</p>
+                        <p>{messageInfo[index] ? messageInfo[index].lastMessage : '대화 없음'}</p>
                       </span>
                     </div>
-                    <p>{room.timestamp}</p>
+                    <p>{messageInfo[index] ? messageInfo[index].time : ''}</p>
                   </li>
                 );
               })}
