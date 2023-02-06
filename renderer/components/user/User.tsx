@@ -33,7 +33,7 @@ export default function User({ user, className }: PropsType) {
           for (let j of Object.keys(room[i])) {
             const userList = room[i][j].roomUserList.split('@spl@');
             if (userList.includes(user.uid)) {
-              roomId = room[i];
+              roomId = room[i][j].roomId;
               break;
             }
           }
