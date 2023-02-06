@@ -27,7 +27,7 @@ export default function ChatRoom() {
 
   const messageRef = ref(database, `/messages/${router.query.room}`);
   const onSubmit = async (data: MessageType) => {
-    if (router.query.room) {
+    if (router.query.room && data.message !== '') {
       await writeMessages(router.query.room, data.message, user.photoURL, Date.now(), user.uid, user.displayName);
       setValue('message', '');
     }
@@ -49,17 +49,61 @@ export default function ChatRoom() {
   }, []);
   return (
     <>
-      <ul>
-        {chats.length > 0
-          ? chats.map((chat) => {
-              return <Message chat={chat} />;
-            })
-          : ''}
-      </ul>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <input {...register('message')} />
-        <button type="submit">전송</button>
-      </form>
+      <div className="room-wrap">
+        <ul>
+          {chats.length > 0
+            ? chats.reverse().map((chat) => {
+                return <Message chat={chat} />;
+              })
+            : ''}
+        </ul>
+        <div className="form-wrap">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <input {...register('message')} />
+            <button type="submit">전송</button>
+          </form>
+        </div>
+      </div>
+      <style jsx>{`
+        .room-wrap {
+          display: flex;
+          flex-direction: column;
+        }
+        ul {
+          position: absolute;
+          bottom: 60px;
+          width: 100%;
+          display: flex;
+          flex-direction: column-reverse;
+          overflow-y: auto;
+          height: 70%;
+          max-width: 600px;
+        }
+        .form-wrap {
+          border-top: 2px solid skyblue;
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          max-width: 600px;
+        }
+        form {
+          width: 100%;
+          display: flex;
+        }
+        input {
+          width: 80%;
+          border: none;
+          padding: 20px;
+        }
+        button {
+          width: 20%;
+          background-color: #ffd43b;
+          border: none;
+        }
+        button:hover {
+          background-color: #fcc419;
+        }
+      `}</style>
     </>
   );
 }
