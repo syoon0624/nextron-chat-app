@@ -5,8 +5,9 @@ import { database, writeMessages } from '../../firebase';
 import { useRouter } from 'next/router';
 import { useRecoilState } from 'recoil';
 import { userState } from '../../recoil/authAtom';
+import Message from '../../components/chat/Message';
 
-interface ChatType {
+export interface ChatType {
   roomId: string | string[];
   message: string;
   profileImg: string;
@@ -17,16 +18,18 @@ interface ChatType {
 type MessageType = {
   message: string;
 };
+
 export default function ChatRoom() {
   const [chats, setChats] = useState<ChatType[]>([]);
   const [user, setUser] = useRecoilState(userState);
-  const { register, handleSubmit } = useForm<MessageType>();
+  const { register, handleSubmit, setValue } = useForm<MessageType>();
   const router = useRouter();
 
   const messageRef = ref(database, `/messages/${router.query.room}`);
   const onSubmit = async (data: MessageType) => {
     if (router.query.room) {
-      writeMessages(router.query.room, data.message, user.photoURL, Date.now(), user.uid, user.displayName);
+      await writeMessages(router.query.room, data.message, user.photoURL, Date.now(), user.uid, user.displayName);
+      setValue('message', '');
     }
   };
   useEffect(() => {
@@ -45,16 +48,18 @@ export default function ChatRoom() {
     });
   }, []);
   return (
-    <h1>
-      <form onSubmit={handleSubmit(onSubmit)}>
+    <>
+      <ul>
         {chats.length > 0
           ? chats.map((chat) => {
-              return <p>{chat.message}</p>;
+              return <Message chat={chat} />;
             })
           : ''}
+      </ul>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <input {...register('message')} />
         <button type="submit">전송</button>
       </form>
-    </h1>
+    </>
   );
 }

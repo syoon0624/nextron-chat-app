@@ -1,10 +1,11 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import Seo from '../../components/Seo';
+import Seo from '../../components/common/Seo';
 import { userState } from '../../recoil/authAtom';
 import Store from 'electron-store';
-import { getUserChatRooms } from '../../firebase';
+import { database, getMessages, getUserChatRooms } from '../../firebase';
+import { get, limitToFirst, query, ref } from 'firebase/database';
 
 const store = new Store();
 
@@ -27,11 +28,14 @@ export default function ChatIndex() {
     const getRoomList = async () => {
       const newRoomList = [];
       const getRooms = await getUserChatRooms();
+
       if (getRooms) {
         for (let i of Object.keys(getRooms)) {
           if (i === user.uid) {
             for (let j of Object.keys(getRooms[i])) {
               newRoomList.push(getRooms[i][j]);
+              const lastMessage = getMessages(getRooms[i][j].roomId, 1);
+              console.log(lastMessage);
             }
             break;
           }
