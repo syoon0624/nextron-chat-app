@@ -1,7 +1,7 @@
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { useRecoilState } from 'recoil';
-import Seo from '../components/Seo';
+import Seo from '../components/common/Seo';
 import { getUsers } from '../firebase';
 import { userState } from '../recoil/authAtom';
 import Store from 'electron-store';
