@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getDatabase, ref, set, get, child, onValue } from 'firebase/database';
+import { getDatabase, ref, set, get, child, onValue, query, limitToFirst } from 'firebase/database';
 import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
@@ -187,12 +187,12 @@ export const writeMessages = async (
   }
 };
 
-export const getMessages = async (roomId: string) => {
-  const dbRef = ref(database);
-  return get(child(dbRef, `messages/${roomId}`))
+export const getMessages = async (roomId: string, limits = 50) => {
+  const dbRef = query(ref(database, `messages/${roomId}`), limitToFirst(limits));
+  get(dbRef)
     .then((snapshot) => {
       if (snapshot.exists()) {
-        return snapshot.val();
+        snapshot.val();
       } else {
         console.log('No data available');
       }
