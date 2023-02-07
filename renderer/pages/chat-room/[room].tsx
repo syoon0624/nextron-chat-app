@@ -36,8 +36,6 @@ export default function ChatRoom() {
     onValue(messageRef, (snapshot) => {
       const messageInfo = snapshot.val();
       const newArray = [];
-      console.log(router.query.room);
-      console.log(messageInfo);
       if (messageInfo) {
         for (let i of Object.keys(messageInfo)) {
           newArray.push(messageInfo[i]);

@@ -4,8 +4,10 @@ import { useRecoilState } from 'recoil';
 import Seo from '../../components/common/Seo';
 import { userState } from '../../recoil/authAtom';
 import Store from 'electron-store';
-import { getMessages, getUserChatRooms } from '../../firebase';
+import { database, getMessages, getUserChatRooms } from '../../firebase';
 import { formatDate } from '../../utils/formatDate';
+import { onValue, ref } from 'firebase/database';
+import { ChatType } from './[room]';
 
 const store = new Store();
 
@@ -23,6 +25,7 @@ interface RoomType {
 interface MessageType {
   lastMessage: string;
   time: string;
+  roomId: string;
 }
 
 export default function ChatIndex() {
@@ -30,31 +33,49 @@ export default function ChatIndex() {
   const [roomList, setRoomList] = useState<RoomType[]>([]);
   const [messageInfo, setMessageInfo] = useState<MessageType[]>([]);
   const router = useRouter();
+
+  const onValueHandle = (path: string, messageInfoList: MessageType[]) => {
+    const messageRef = ref(database, `/messages/${path}`);
+
+    onValue(messageRef, async (snapshot) => {
+      const lastMessage = await getMessages(path, 1);
+      messageInfoList = messageInfo;
+      console.log(lastMessage);
+      if (lastMessage) {
+        const lastMessageInfo = lastMessage[Object.keys(lastMessage)[0]];
+        const newMessageInfo = {
+          lastMessage: lastMessageInfo.message,
+          time: formatDate(lastMessageInfo.timestamp),
+          roomId: lastMessageInfo.roomId,
+        };
+        if (messageInfoList.findIndex((ele) => ele.roomId === newMessageInfo.roomId) === -1) {
+          messageInfoList.push(newMessageInfo);
+          console.log(messageInfoList);
+          setMessageInfo(messageInfoList);
+        } else
+          setMessageInfo(
+            messageInfo.map((message) => (message.roomId === newMessageInfo.roomId ? newMessageInfo : message))
+          );
+      }
+      //console.log(messageInfoList);
+    });
+  };
   useEffect(() => {
     const getRoomList = async () => {
       const newRoomList = [];
       const getRooms = await getUserChatRooms();
-      const newMessageInfo = [];
-
+      let messageInfoList: MessageType[] = [];
       if (getRooms) {
         for (let i of Object.keys(getRooms)) {
           if (i === user.uid) {
             for (let j of Object.keys(getRooms[i])) {
               newRoomList.push(getRooms[i][j]);
-              const lastMessage = await getMessages(getRooms[i][j].roomId, 1);
-              if (lastMessage) {
-                const lastMessageInfo = lastMessage[Object.keys(lastMessage)[0]];
-                newMessageInfo.push({
-                  lastMessage: lastMessageInfo.message,
-                  time: formatDate(lastMessageInfo.timestamp),
-                });
-              }
+              onValueHandle(getRooms[i][j].roomId, messageInfoList);
             }
             break;
           }
         }
         setRoomList(newRoomList);
-        setMessageInfo(newMessageInfo);
       }
     };
     getRoomList();
@@ -63,7 +84,7 @@ export default function ChatIndex() {
       alert('로그인을 먼저 해주세요!');
       router.push('/auth/login');
     }
-  }, [user]);
+  }, []);
   const chatRoomNavigate = (roomId: string) => {
     router.push(`/chat-room/${roomId}`);
   };
