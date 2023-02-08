@@ -4,7 +4,7 @@ import { useRecoilState } from 'recoil';
 import Seo from '../../components/common/Seo';
 import { userState } from '../../recoil/authAtom';
 import Store from 'electron-store';
-import { database, getMessages, getUserChatRooms } from '../../firebase';
+import { database, getMessages, getUserChatRooms, writeUserChatRooms } from '../../firebase';
 import { formatDate } from '../../utils/formatDate';
 import { onValue, ref } from 'firebase/database';
 import { ChatType } from './[room]';
@@ -31,46 +31,60 @@ interface MessageType {
 export default function ChatIndex() {
   const [user, setUser] = useRecoilState(userState);
   const [roomList, setRoomList] = useState<RoomType[]>([]);
-  const [messageInfo, setMessageInfo] = useState<MessageType[]>([]);
   const router = useRouter();
 
-  const onValueHandle = (path: string, messageInfoList: MessageType[]) => {
+  const onValueHandle = (path: string, messageInfoList: RoomType[]) => {
     const messageRef = ref(database, `/messages/${path}`);
 
     onValue(messageRef, async (snapshot) => {
       const lastMessage = await getMessages(path, 1);
-      messageInfoList = messageInfo;
-      console.log(lastMessage);
       if (lastMessage) {
         const lastMessageInfo = lastMessage[Object.keys(lastMessage)[0]];
         const newMessageInfo = {
           lastMessage: lastMessageInfo.message,
-          time: formatDate(lastMessageInfo.timestamp),
+          timestamp: lastMessageInfo.timestamp,
           roomId: lastMessageInfo.roomId,
         };
-        if (messageInfoList.findIndex((ele) => ele.roomId === newMessageInfo.roomId) === -1) {
-          messageInfoList.push(newMessageInfo);
-          console.log(messageInfoList);
-          setMessageInfo(messageInfoList);
-        } else
-          setMessageInfo(
-            messageInfo.map((message) => (message.roomId === newMessageInfo.roomId ? newMessageInfo : message))
-          );
+        if (messageInfoList.findIndex((ele) => ele.roomId === lastMessageInfo.roomId) !== -1) {
+          const newArr = messageInfoList.map((room) => {
+            if (room.roomId === newMessageInfo.roomId) {
+              writeUserChatRooms(
+                room.userId,
+                newMessageInfo.lastMessage,
+                room.profileImg,
+                room.roomId,
+                room.roomType,
+                room.roomUsersName,
+                room.roomUserList,
+                newMessageInfo.timestamp
+              );
+              return { ...room, ...newMessageInfo };
+            } else return room;
+          });
+          newArr.sort((a, b) => b.timestamp - a.timestamp);
+          setRoomList(newArr);
+        }
       }
-      //console.log(messageInfoList);
     });
   };
   useEffect(() => {
     const getRoomList = async () => {
       const newRoomList = [];
       const getRooms = await getUserChatRooms();
-      let messageInfoList: MessageType[] = [];
       if (getRooms) {
         for (let i of Object.keys(getRooms)) {
           if (i === user.uid) {
             for (let j of Object.keys(getRooms[i])) {
-              newRoomList.push(getRooms[i][j]);
-              onValueHandle(getRooms[i][j].roomId, messageInfoList);
+              newRoomList.push({ userId: i, ...getRooms[i][j] });
+            }
+            break;
+          }
+        }
+        newRoomList.sort((a, b) => b.timestamp - a.timestamp);
+        for (let i of Object.keys(getRooms)) {
+          if (i === user.uid) {
+            for (let j of Object.keys(getRooms[i])) {
+              onValueHandle(getRooms[i][j].roomId, newRoomList);
             }
             break;
           }
@@ -84,7 +98,8 @@ export default function ChatIndex() {
       alert('로그인을 먼저 해주세요!');
       router.push('/auth/login');
     }
-  }, []);
+  }, [user]);
+
   const chatRoomNavigate = (roomId: string) => {
     router.push(`/chat-room/${roomId}`);
   };
@@ -112,10 +127,10 @@ export default function ChatIndex() {
                             if (index > 0) return ele;
                           })}
                         </p>
-                        <p>{messageInfo[index] ? messageInfo[index].lastMessage : '대화 없음'}</p>
+                        <p>{room.lastMessage !== '' ? room.lastMessage : '대화 없음'}</p>
                       </span>
                     </div>
-                    <p>{messageInfo[index] ? messageInfo[index].time : ''}</p>
+                    <p>{formatDate(room.timestamp)}</p>
                   </li>
                 );
               })}

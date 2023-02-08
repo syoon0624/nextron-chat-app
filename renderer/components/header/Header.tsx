@@ -39,7 +39,6 @@ export default function Header() {
     } else {
       if (store.get('accessToken')) {
         const data = formatJWTtoJSON(store.get('accessToken'));
-        console.log(data.name);
         setToken(store.get('accessToken'));
         setUser({
           isAuthenticated: true,

@@ -40,18 +40,19 @@ export default function ChatRoom() {
         for (let i of Object.keys(messageInfo)) {
           newArray.push(messageInfo[i]);
         }
-        console.log(newArray);
+        // console.log(newArray);
         setChats(newArray);
       }
     });
-  }, []);
+  }, [user]);
+
   return (
     <>
       <div className="room-wrap">
         <ul>
           {chats.length > 0
             ? chats.reverse().map((chat) => {
-                return <Message chat={chat} />;
+                return <Message key={chat.timestamp} chat={chat} />;
               })
             : ''}
         </ul>

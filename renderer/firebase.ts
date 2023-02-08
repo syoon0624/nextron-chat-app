@@ -143,7 +143,6 @@ export const writeUserChatRooms = async (
       roomUserList,
       timestamp,
     });
-    console.log('방생성 성공!');
   } catch (err) {
     console.log(err);
   }
